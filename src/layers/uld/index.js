@@ -32,8 +32,8 @@ export function createUldLayer({ source }) {
     update() {
       return true;
     },
-    focus() {
-      return enabled ? renderer.focus() : Promise.resolve(false);
+    focus(uldId) {
+      return enabled ? renderer.focus(uldId) : Promise.resolve(false);
     },
     getStats() {
       return {

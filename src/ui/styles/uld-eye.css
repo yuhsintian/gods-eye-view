@@ -1,4 +1,4 @@
-#uld-detail-panel [data-panel-body] {
+:is(#uld-detail-panel, #uld-alert-panel) [data-panel-body] {
   padding: 12px;
 }
 
@@ -24,18 +24,55 @@
   white-space: pre-line;
 }
 
-#uld-detail-panel [data-alert-level='NORMAL'] {
+:is(#uld-detail-panel, #uld-alert-panel) [data-alert-level='NORMAL'] {
   color: #43d9b0;
 }
-#uld-detail-panel [data-alert-level='WARNING'] {
+:is(#uld-detail-panel, #uld-alert-panel) [data-alert-level='WARNING'] {
   color: #ffbd4a;
 }
-#uld-detail-panel [data-alert-level='CRITICAL'] {
+:is(#uld-detail-panel, #uld-alert-panel) [data-alert-level='CRITICAL'] {
   color: #ff5364;
 }
 
 .uld-demo-notice {
   font-size: 11px;
   line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.uld-demo-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.uld-alert-subtitle {
+  color: var(--text-secondary);
+  font-size: 11px;
+  margin: 0 0 10px;
+}
+.uld-alert-card.panel-surface-control {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  width: 100%;
+  margin: 10px 0;
+  padding: 12px;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  border-inline-start: 3px solid currentColor;
+}
+.uld-alert-card [data-alert-field='title'] {
+  font-weight: 600;
+}
+.uld-alert-card
+  :is(
+    [data-alert-field='message'],
+    [data-alert-field='englishType'],
+    [data-alert-field='occurredAt'],
+    [data-alert-field='status']
+  ) {
+  font-size: 11px;
   color: var(--text-secondary);
 }

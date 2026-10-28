@@ -2631,6 +2631,7 @@
       "src/sceneCommandRelease.js",
       "src/scopeMaskPolicy.js",
       "src/uld/records.js",
+      "src/uld/alerts.js",
       "src/uld/store.js",
       "src/layers/uld/source.js",
       "src/layers/uld/index.js",

@@ -11,11 +11,44 @@ import {
   formatUldValue,
   getUldFields,
   getUldLegend,
+  getUldAlertPresentation,
 } from './uldPresentation.js';
 import { createUldStore } from '../uld/store.js';
 import { createMockUldRecords } from '../layers/uld/source.js';
 
 afterEach(() => setLocale('en'));
+
+test('alert enums, title, message and event time use centralized Taiwan presentation', () => {
+  setLocale('zh-TW');
+  for (const [value, expected] of [
+    ['UNAUTHORIZED_MOVEMENT', '未授權移動'],
+    ['UNSERVICEABLE', '不可使用'],
+    ['DWELL_WARNING', '滯留時間警告'],
+    ['LOST_CANDIDATE', '疑似遺失'],
+  ])
+    assert.equal(formatUldValue('type', value), expected);
+  for (const [value, expected] of [
+    ['ACTIVE', '啟用中'],
+    ['ACKNOWLEDGED', '已確認'],
+    ['RESOLVED', '已解除'],
+  ])
+    assert.equal(formatUldValue('status', value), expected);
+  const shown = getUldAlertPresentation({
+    type: 'UNAUTHORIZED_MOVEMENT',
+    level: 'WARNING',
+    status: 'ACTIVE',
+    title: 'Unauthorized ULD movement',
+    message: 'ULD left STORAGE-A without a valid dispatch.',
+    occurredAt: '2026-10-28T10:00:00.000Z',
+    fromZoneId: 'STORAGE-A',
+    toZoneId: 'EXIT-A',
+  });
+  assert.equal(shown.title, '未授權 ULD 移動');
+  assert.equal(shown.message, '偵測到 ULD 在無有效派遣情境下離開 STORAGE-A');
+  assert.equal(shown.englishType, 'Unauthorized Movement');
+  assert.equal(shown.transition, 'STORAGE-A → EXIT-A');
+  assert.equal(shown.occurredAt, '2026-10-28 18:00:00');
+});
 
 test('Taiwan locale resolves Traditional tags and translates primary UI and brand', () => {
   for (const tag of ['zh-TW', 'zh_Hant', 'zh-Hant-HK', 'ZH-tw'])

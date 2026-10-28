@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import test from 'node:test';
-import { APPLICATION_LAYER_METADATA } from '../app/constructCatalog.js';
+import test, { after } from 'node:test';
+import { createStandaloneCatalog } from '../standalone/catalog.js';
 import { setLocale, t } from '../i18n/index.js';
 import { FEED_SOURCE, COMBINED_SOURCE } from '../layers/localAdsb/status.js';
 import {
@@ -13,7 +13,12 @@ import {
 // language: the Bhote Koshi pair belong to a scripted scene.
 const UNTRANSLATED_NAMES = new Set(['bhote-koshi-2026', 'bhote-koshi-locator']);
 
-const catalogIds = APPLICATION_LAYER_METADATA.map((layer) => layer.id);
+// The product UI includes host-owned layers such as ULD, added by standalone.
+const lifetime = new AbortController();
+const catalogIds = createStandaloneCatalog({
+  signal: lifetime.signal,
+}).metadata.map((layer) => layer.id);
+after(() => lifetime.abort());
 
 test('every catalog layer has a translatable name', () => {
   const missing = catalogIds.filter(

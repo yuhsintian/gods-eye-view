@@ -1,4 +1,25 @@
   <div id="left-panel-stack">
+  <section id="uld-alert-panel" class="panel-collapsible" data-panel-id="uld-alert-panel" aria-labelledby="uld-alert-title">
+    <div data-panel-surface>
+      <header data-panel-header>
+        <h2 id="uld-alert-title" class="panel-title panel-surface-title" data-i18n>ULD Alerts</h2>
+        <span data-uld-alert-count aria-label="Active ULD alerts" data-i18n-aria-label>0</span>
+        <button type="button" class="panel-collapse-btn panel-surface-control" data-collapse-target="uld-alert-panel" aria-expanded="true" aria-label="Collapse ULD alerts" data-i18n-aria-label>−</button>
+      </header>
+      <div data-panel-body data-rail-scroller>
+        <p class="uld-alert-subtitle" translate="no">ULD Alerts</p>
+        <div class="uld-demo-controls">
+          <button type="button" class="panel-surface-control" data-uld-simulate data-i18n>Simulate Unauthorized Movement</button>
+          <button type="button" class="panel-surface-control" data-uld-reset data-i18n>Reset Demo</button>
+        </div>
+        <p class="uld-demo-notice" data-i18n>Local demo scenario only, not a production rule engine.</p>
+        <p class="panel-surface-error" data-uld-demo-error role="status" hidden></p>
+        <p data-uld-alert-empty role="status" data-i18n>No active ULD alerts</p>
+        <div data-uld-alert-list></div>
+        <p class="panel-surface-error" data-uld-alert-error role="status" hidden></p>
+      </div>
+    </div>
+  </section>
   <!-- Data Layer Toggle Panel -->
   <div id="data-panel" class="panel-collapsible collapsed active" data-panel-id="data-panel">
     <div class="panel-glow"></div>
