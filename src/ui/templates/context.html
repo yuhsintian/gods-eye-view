@@ -1,5 +1,20 @@
   <!-- Global Context is deliberately independent from the left layer accordion. -->
   <aside id="right-context-rail">
+    <section id="uld-detail-panel" class="panel-collapsible" data-panel-id="uld-detail-panel" aria-labelledby="uld-detail-title">
+      <div data-panel-surface>
+        <header data-panel-header>
+          <h2 id="uld-detail-title" class="panel-title panel-surface-title" data-i18n>ULD DETAIL</h2>
+          <button type="button" class="panel-collapse-btn panel-surface-control" data-collapse-target="uld-detail-panel" aria-expanded="true" aria-label="Collapse ULD detail" data-i18n-aria-label>−</button>
+        </header>
+        <div data-panel-body data-rail-scroller>
+          <button type="button" class="panel-surface-control" data-uld-focus data-i18n>Show TPE demo</button>
+          <p class="uld-demo-notice"><span data-i18n>MOCK</span> · <span data-i18n>CONFIGURED_DEMO</span><br><span data-i18n>Configured locations, not live GPS.</span></p>
+          <p class="uld-demo-notice uld-demo-legend" data-uld-legend data-i18n-runtime></p>
+          <div data-uld-detail aria-live="polite"><p data-i18n>No ULD selected</p></div>
+          <p class="panel-surface-error" data-uld-error role="status" hidden></p>
+        </div>
+      </div>
+    </section>
     <div id="weather-panel" class="panel-collapsible" data-panel-id="weather-panel" hidden>
       <div class="panel-glow"></div>
       <div class="weather-panel-inner" data-rail-scroller>

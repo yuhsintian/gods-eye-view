@@ -1,0 +1,41 @@
+#uld-detail-panel [data-panel-body] {
+  padding: 12px;
+}
+
+.uld-detail-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px;
+  margin: 14px 0;
+  font-size: 12px;
+}
+
+.uld-detail-fields dt {
+  color: var(--text-secondary);
+}
+
+.uld-detail-fields dd {
+  margin: 0 0 12px;
+  overflow-wrap: anywhere;
+  font-family: var(--font-mono);
+}
+
+.uld-demo-legend {
+  white-space: pre-line;
+}
+
+#uld-detail-panel [data-alert-level='NORMAL'] {
+  color: #43d9b0;
+}
+#uld-detail-panel [data-alert-level='WARNING'] {
+  color: #ffbd4a;
+}
+#uld-detail-panel [data-alert-level='CRITICAL'] {
+  color: #ff5364;
+}
+
+.uld-demo-notice {
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}

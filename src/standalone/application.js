@@ -30,7 +30,8 @@ export function createStandaloneApplication({
   // and every catalog lookup agree from the first painted frame. Module
   // scripts execute after parsing, so the DOM is ready here and every
   // data-i18n* element honors the resolved locale without a reload.
-  const activeLocale = resolveLocale();
+  // ULD EYE defaults to Taiwan Chinese; explicit query/stored choices still win.
+  const activeLocale = resolveLocale({ languages: ['zh-TW'] });
   setLocale(activeLocale);
   applyDocumentLanguage(document, activeLocale);
   applyDocumentTranslations(document);
