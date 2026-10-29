@@ -5,6 +5,7 @@ import { createUldDemoScenario } from '../../../src/uld/demoScenario.js';
 import { createObservationProcessor } from './observations.js';
 import { createSemanticModel } from './semantic/index.js';
 import { createSemanticProjection } from './semantic/projection.js';
+import { createOperationsReadModel } from './operations/readModel.js';
 
 /** Process-local DEVELOPMENT mock authority. No acquisition starts on import. */
 export function createUldBackend({
@@ -64,6 +65,11 @@ export function createUldBackend({
     semantic,
     initialRecords: store.getSnapshot().records,
   });
+  const readOperations = createOperationsReadModel({
+    store,
+    semantic,
+    getStreamRevision: () => streamRevision,
+  });
   const observations = createObservationProcessor({
     store,
     registry,
@@ -89,6 +95,7 @@ export function createUldBackend({
     reset: projection.reset,
     observe: observations.accept,
     recentObservations: observations.recent,
+    readOperations,
     semanticDiagnostics: semantic.diagnostics,
     activateDispatch: semantic.activateDispatch,
     clearDispatch: semantic.clearDispatch,

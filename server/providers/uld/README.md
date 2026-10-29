@@ -154,3 +154,13 @@ curl, checks Last Seen in the real Browser without a reload or position/business
 state mutation, verifies dedupe/old times/unknown tags, and exercises both Demo
 APIs afterward. This is not physical BLE validation. Both QA scripts skip remote
 font downloads; installed fallback fonts supply CJK text for readability checks.
+
+## M7 operations presentation
+
+Public safe reads: `/api/uld/events?uldId=...` and `/api/uld/operations?uldId=...`.
+They project existing canonical events and Backend decisions without diagnostic
+state, are bounded to 20 events, and work in preview too. Existing demo/context
+writes retain their development-only gate. The one-click UI scenarios use real
+Observation APIs and await inferred state; no frontend rules or direct ULD writes.
+See [Operations workflow](../../../docs/ULD-OPERATIONS.md) and run
+`node scripts/qa-uld-operations.mjs --url http://localhost:4173` for Browser QA.

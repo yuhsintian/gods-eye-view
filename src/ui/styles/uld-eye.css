@@ -198,3 +198,130 @@
     --panel-surface-width: min(100%, 350px);
   }
 }
+/* Operations stay inside the existing rails; native details and views keep density bounded. */
+.uld-operations {
+  border-block: 1px solid var(--uld-secondary);
+  padding-block: 12px;
+  margin-block: 12px;
+}
+.uld-operations h3 {
+  margin: 0;
+  font-size: var(--uld-value-size);
+  line-height: 1.5;
+}
+.uld-operations .uld-demo-notice {
+  margin: 6px 0;
+}
+.uld-task-details summary,
+.uld-legacy-demo summary {
+  cursor: pointer;
+  font-size: var(--uld-label-size);
+  line-height: 1.6;
+  padding-block: 6px;
+  overflow-wrap: anywhere;
+}
+.uld-task-details summary strong {
+  display: block;
+  margin-top: 4px;
+  color: #64e6bd;
+}
+.uld-task-details [data-task-status='INACTIVE'] {
+  color: var(--uld-secondary);
+}
+.uld-task-fields {
+  margin: 12px 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 12px;
+}
+.uld-task-fields dt {
+  color: var(--uld-secondary);
+  font-size: var(--uld-label-size);
+}
+.uld-task-fields dd {
+  margin: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.uld-operations-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+.uld-operations-progress {
+  margin: 10px 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.uld-system-status {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 6px 10px;
+  font-size: var(--uld-label-size);
+  line-height: 1.6;
+}
+.uld-system-status > span {
+  color: var(--uld-secondary);
+}
+.uld-system-status strong {
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.uld-context-tabs {
+  display: flex;
+  gap: 8px;
+  margin-block: 12px;
+}
+.uld-context-tabs > button {
+  flex: 1;
+}
+.uld-context-tabs [aria-pressed='true'] {
+  border-color: #64e6bd;
+  color: #64e6bd;
+}
+.uld-timeline-selected {
+  font-size: var(--uld-value-size);
+  font-weight: 600;
+  margin-block: 12px 4px;
+}
+.uld-timeline-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.uld-timeline-card {
+  border-inline-start: 2px solid #64e6bd;
+  padding: 10px 12px;
+  margin-block: 12px;
+  overflow-wrap: anywhere;
+}
+.uld-timeline-card > strong {
+  font-size: var(--uld-value-size);
+  display: block;
+}
+.uld-timeline-card :is(time, small) {
+  color: var(--uld-secondary);
+  font-size: var(--uld-label-size);
+  display: block;
+  line-height: 1.6;
+}
+.uld-timeline-card p {
+  margin-block: 6px;
+}
+.uld-rule-decision {
+  border-top: 1px solid currentColor;
+  margin-top: 10px;
+  padding-top: 8px;
+  font-size: var(--uld-label-size);
+}
+.uld-rule-decision span {
+  display: block;
+}
+.uld-rule-decision span:first-child {
+  font-weight: 600;
+  font-size: var(--uld-body-size);
+}
+.uld-legacy-demo {
+  margin-top: 12px;
+}

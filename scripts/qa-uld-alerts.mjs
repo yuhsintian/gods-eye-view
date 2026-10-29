@@ -66,6 +66,7 @@ try {
     const source = scene.viewer.dataSources.getByName('uld')[0];
     const entity = source.entities.getById('uld:AKE12345CI');
     window.__uldAlertQa.resources = { source, entity, point: entity.point };
+    document.querySelector('[data-uld-legacy-demo]').open = true;
   });
   const state = () =>
     page.evaluate(() => {
@@ -167,6 +168,10 @@ try {
   );
 
   await page.click('[data-uld-simulate]');
+  await page.waitForFunction(
+    () =>
+      window.__uldAlertQa.data.catalog.uldStore.getActiveAlerts().length === 1,
+  );
   await page.evaluate(() =>
     window.__uldAlertQa.data.dataManager.setEnabled('uld', false),
   );
@@ -184,6 +189,10 @@ try {
   );
   assert.equal((await state()).layerEnabled, true);
   await page.click('[data-uld-reset]');
+  await page.waitForFunction(
+    () =>
+      window.__uldAlertQa.data.catalog.uldStore.getActiveAlerts().length === 0,
+  );
   const detachedSimulate = await page.$('[data-uld-simulate]');
   await page.evaluate(() => window.__uldAlertQa.application.destroy());
   assert.equal(

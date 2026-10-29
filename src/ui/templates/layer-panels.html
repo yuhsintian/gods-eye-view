@@ -8,12 +8,40 @@
       </header>
       <div data-panel-body data-rail-scroller>
         <p class="uld-alert-subtitle" translate="no">ULD Alerts</p>
+        <section class="uld-operations" data-uld-operations aria-labelledby="uld-task-title">
+          <h3 id="uld-task-title" data-i18n>ULD Dispatch Task</h3>
+          <p class="uld-demo-notice"><span data-i18n>Demo target ULD</span> · <strong translate="no">AKE12345CI</strong></p>
+          <details class="uld-task-details">
+            <summary><span data-uld-ops-task-id data-i18n-runtime>—</span><strong data-uld-ops-task-status data-i18n-runtime>—</strong></summary>
+            <dl class="uld-task-fields" data-uld-ops-task-fields data-i18n-runtime></dl>
+            <div class="uld-demo-controls">
+              <button type="button" class="panel-surface-control" data-uld-ops-activate data-i18n>Activate dispatch task</button>
+              <button type="button" class="panel-surface-control" data-uld-ops-clear data-i18n>Clear dispatch task</button>
+            </div>
+          </details>
+          <div class="uld-operations-actions">
+            <button type="button" class="panel-surface-control" data-uld-ops-normal data-i18n>Normal dispatch demo</button>
+            <button type="button" class="panel-surface-control" data-uld-ops-unauthorized data-i18n>Unauthorized movement demo</button>
+            <button type="button" class="panel-surface-control" data-uld-ops-reset data-i18n>Reset Demo</button>
+          </div>
+          <p class="uld-operations-progress" data-uld-ops-progress role="status" aria-live="polite" data-i18n-runtime></p>
+          <div class="uld-system-status">
+            <span data-i18n>Realtime connection</span><strong data-uld-ops-connection data-i18n-runtime></strong>
+            <span data-i18n>Data source</span><strong data-i18n>Simulated Observation · DEMO OBSERVATION</strong>
+            <span data-i18n>Location mode</span><strong data-i18n>Reader-zone inference</strong>
+            <span data-i18n>Rule engine</span><strong data-i18n>Rules enabled</strong>
+          </div>
+          <p class="panel-surface-error" data-uld-ops-error role="status" hidden></p>
+        </section>
+        <details class="uld-legacy-demo" data-uld-legacy-demo>
+          <summary data-i18n>Legacy direct demo backup · development only</summary>
         <div class="uld-demo-controls">
           <button type="button" class="panel-surface-control" data-uld-simulate data-i18n>Simulate Unauthorized Movement</button>
           <button type="button" class="panel-surface-control" data-uld-reset data-i18n>Reset Demo</button>
         </div>
         <p class="uld-demo-notice" data-i18n>Development demo only, not a production rule engine.</p>
         <p class="panel-surface-error" data-uld-demo-error role="status" hidden></p>
+        </details>
         <p data-uld-alert-empty role="status" data-i18n>No active ULD alerts</p>
         <div data-uld-alert-list></div>
         <p class="panel-surface-error" data-uld-alert-error role="status" hidden></p>

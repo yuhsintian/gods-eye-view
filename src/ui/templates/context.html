@@ -14,7 +14,19 @@
           <button type="button" class="panel-surface-control" data-uld-focus data-i18n>Show TPE demo</button>
           <p class="uld-demo-notice"><span data-i18n>MOCK</span> · <span data-uld-position-source data-i18n-runtime></span><br><span data-i18n>Configured locations, not live GPS.</span></p>
           <p class="uld-demo-notice uld-demo-legend" data-uld-legend data-i18n-runtime></p>
+          <div class="uld-context-tabs" role="group" aria-label="ULD information views" data-i18n-aria-label>
+            <button type="button" class="panel-surface-control" data-uld-tab="detail" aria-pressed="true" data-i18n>ULD details view</button>
+            <button type="button" class="panel-surface-control" data-uld-tab="timeline" aria-pressed="false" data-i18n>Event timeline</button>
+          </div>
+          <div data-uld-view="detail">
           <div data-uld-detail aria-live="polite"><p data-i18n>No ULD selected</p></div>
+          </div>
+          <section data-uld-view="timeline" hidden aria-label="Event timeline" data-i18n-aria-label>
+            <p class="uld-timeline-selected" data-uld-timeline-selected data-i18n-runtime>—</p>
+            <p class="uld-demo-notice" data-i18n>Latest 15 events · times in Taiwan</p>
+            <p data-uld-timeline-empty data-i18n>No ULD selected</p>
+            <ol class="uld-timeline-list" data-uld-timeline-list data-i18n-runtime></ol>
+          </section>
           <p class="panel-surface-error" data-uld-error role="status" hidden></p>
         </div>
       </div>

@@ -618,3 +618,200 @@ test('context APIs validate separately from observations, clear contexts and sta
     403,
   );
 });
+
+test('M7 public operations projection: task, filtered canonical events and auditable decisions without diagnostics', async (t) => {
+  const f = await fixture(t);
+  const read = async (suffix = '') => {
+    const response = await fetch(
+      `${f.url}/api/uld/operations?uldId=AKE12345CI${suffix}`,
+    );
+    assert.equal(response.status, 200);
+    return response.json();
+  };
+  const initial = await read();
+  assert.deepEqual(initial.task, {
+    uldId: 'AKE12345CI',
+    taskId: 'TASK-CI152-01',
+    flight: 'CI152',
+    destination: 'KIX',
+    requiredUldType: 'AKE',
+    requiredQuantity: 1,
+    status: 'INACTIVE',
+  });
+  assert.deepEqual(initial.events, []);
+  assert.equal(initial.presentation.dataSource, 'DEMO_OBSERVATION');
+  let time = Date.now() - 100;
+  for (const reader of [
+    'TPE-STORAGE-GW-01',
+    'TPE-STORAGE-GW-01',
+    'TPE-EXIT-GW-01',
+    'TPE-EXIT-GW-01',
+  ]) {
+    const result = await f.observe({
+      observationId: `public-${++time}`,
+      tagId: 'TAG001',
+      readerId: reader,
+      rssi: -61,
+      observedAt: new Date(time).toISOString(),
+      sourceType: 'BLE',
+    });
+    assert.equal(result.status, 200);
+  }
+  const model = await read();
+  assert.ok(model.streamRevision > initial.streamRevision);
+  assert.ok(model.uldRevision > initial.uldRevision);
+  assert.equal(model.events[0].eventType, 'MOVED');
+  assert.ok(model.events.every((event) => event.uldId === 'AKE12345CI'));
+  const decision = model.events[0].decisions.find(
+    (item) => item.ruleId === 'RULE_UNAUTHORIZED_MOVEMENT',
+  );
+  assert.equal(decision.reasonCode, 'NO_ACTIVE_DISPATCH_CONTEXT');
+  assert.equal(decision.matched, true);
+  assert.deepEqual(decision.alert, {
+    type: 'UNAUTHORIZED_MOVEMENT',
+    level: 'WARNING',
+  });
+  assert.equal('facts' in decision, false);
+  for (const key of [
+    'evidence',
+    'policy',
+    'dispatchContexts',
+    'inferredLocations',
+    'ruleDecisions',
+  ])
+    assert.equal(key in model, false);
+  assert.equal('rssi' in model.events[1], false);
+  const events = await (
+    await fetch(`${f.url}/api/uld/events?uldId=AKE12345CI&limit=2`)
+  ).json();
+  assert.equal(events.events.length, 2);
+  assert.deepEqual(
+    Object.keys(events).sort(),
+    ['schemaVersion', 'uldId', 'streamRevision', 'events'].sort(),
+  );
+  const unrelated = await (
+    await fetch(`${f.url}/api/uld/events?uldId=AKE67890CI`)
+  ).json();
+  assert.deepEqual(unrelated.events, []);
+  for (const query of [
+    '',
+    '?uldId=AKE12345CI&limit=0',
+    '?uldId=AKE12345CI&limit=21',
+    '?uldId=AKE12345CI&limit=no',
+    '?uldId=AKE12345CI&limit=1.5',
+  ])
+    assert.equal((await fetch(`${f.url}/api/uld/events${query}`)).status, 400);
+  assert.equal(
+    (await fetch(`${f.url}/api/uld/events?uldId=unknown`)).status,
+    404,
+  );
+  assert.equal(
+    (
+      await fetch(`${f.url}/api/uld/events?uldId=AKE12345CI`, {
+        method: 'POST',
+      })
+    ).status,
+    405,
+  );
+  await f.post('reset');
+  assert.deepEqual((await read()).events, []);
+  assert.equal((await read()).task.status, 'INACTIVE');
+});
+
+test('M7 public reads work in preview while context/demo writes and diagnostics remain gated', async (t) => {
+  const f = await fixture(t, false);
+  for (const path of ['events', 'operations']) {
+    const response = await fetch(`${f.url}/api/uld/${path}?uldId=AKE12345CI`);
+    assert.equal(response.status, 200);
+    const value = await response.json();
+    if (path === 'operations')
+      assert.equal(value.presentation.demoEnabled, false);
+  }
+  assert.equal((await fetch(`${f.url}/api/uld/events/recent`)).status, 404);
+  assert.equal((await f.post('context/dispatch/activate')).status, 403);
+});
+
+test('M7 real HTTP orchestration + existing WS Store: normal, warning, repeated unique IDs, context and reset', async (t) => {
+  const { createOperationsApi } =
+    await import('../../../src/uld/operationsApi.js');
+  const { createOperationsDemo } =
+    await import('../../../src/uld/operationsDemo.js');
+  const f = await fixture(t);
+  const store = createUldStore();
+  const realtime = createUldRealtimeClient({
+    store,
+    location: { href: f.url },
+    WebSocketImpl: globalThis.WebSocket,
+  });
+  const observationIds = [],
+    calls = [],
+    steps = [];
+  const api = createOperationsApi({
+    fetchImpl: (path, init) => {
+      calls.push(path);
+      if (path === '/api/uld/observations')
+        observationIds.push(JSON.parse(init.body).observationId);
+      return fetch(f.url + path, init);
+    },
+  });
+  const refresh = async () =>
+    store.replaceOperations(await api.read('AKE12345CI'));
+  const demo = createOperationsDemo({
+    api,
+    store,
+    refresh,
+    pollMs: 5,
+    onStep: (step) => steps.push(step),
+  });
+  t.after(() => {
+    demo.destroy();
+    realtime.stop();
+    store.destroy();
+  });
+  realtime.start();
+  await until(() => store.getSnapshot().connectionStatus === 'CONNECTED');
+  for (const mode of ['UNAUTHORIZED', 'NORMAL', 'UNAUTHORIZED', 'NORMAL']) {
+    const model = await demo.run(mode);
+    assert.equal(model.task.status, mode === 'NORMAL' ? 'ACTIVE' : 'INACTIVE');
+    const moved = model.events.filter((event) => event.eventType === 'MOVED');
+    assert.equal(moved.length, 1);
+    assert.equal(
+      moved[0].decisions.find(
+        (item) => item.ruleId === 'RULE_UNAUTHORIZED_MOVEMENT',
+      ).matched,
+      mode === 'UNAUTHORIZED',
+    );
+    assert.equal(store.getUldById('AKE12345CI').zoneId, 'EXIT-A');
+    assert.equal(
+      store.getUldById('AKE12345CI').alertLevel,
+      mode === 'NORMAL' ? 'NORMAL' : 'WARNING',
+    );
+    assert.equal(store.getActiveAlerts().length, mode === 'NORMAL' ? 0 : 1);
+  }
+  assert.equal(observationIds.length, 16);
+  assert.equal(new Set(observationIds).size, 16);
+  assert.ok(steps.includes('DISPATCH_ACTIVE'));
+  assert.ok(steps.includes('COMPLETED_NORMAL'));
+  assert.ok(steps.includes('COMPLETED_WARNING'));
+  assert.ok(calls.includes('/api/uld/demo/context/dispatch/activate'));
+  assert.equal(calls.includes('/api/uld/demo/unauthorized-movement'), false);
+  assert.equal(
+    calls.some((path) => path.includes('/recent')),
+    false,
+  );
+  await api.clear('AKE12345CI');
+  await refresh();
+  assert.equal(
+    store.getOperationsByUldId('AKE12345CI').task.status,
+    'INACTIVE',
+  );
+  await demo.reset();
+  assert.equal(store.getUldById('AKE12345CI').zoneId, 'STORAGE-A');
+  assert.equal(store.getActiveAlerts().length, 0);
+  assert.deepEqual(store.getOperationsByUldId('AKE12345CI').events, []);
+  // Existing direct demo remains available as a fallback, independently of M7.
+  await f.post('unauthorized-movement');
+  await until(() => store.getActiveAlerts().length === 1);
+  await demo.reset();
+  assert.equal(store.getActiveAlerts().length, 0);
+});

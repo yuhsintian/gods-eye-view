@@ -1,5 +1,6 @@
 import { normalizeUldRecord } from './records.js';
 import { normalizeUldAlert } from './alerts.js';
+import { normalizeOperationsProjection } from './operationsProjection.js';
 
 export const ULD_CONNECTION_STATUSES = Object.freeze([
   'CONNECTING',
@@ -27,6 +28,7 @@ export function createUldStore(initialRecords = [], initialAlerts = []) {
     alerts.set(alert.alertId, alert);
   }
   const listeners = new Set();
+  const operations = new Map();
   let selectedUldId = null;
   let connectionStatus = 'DISCONNECTED';
   let destroyed = false;
@@ -36,6 +38,7 @@ export function createUldStore(initialRecords = [], initialAlerts = []) {
       alerts: Object.freeze([...alerts.values()]),
       selectedUldId,
       connectionStatus,
+      operations: Object.freeze([...operations.values()]),
     });
   const notify = (listener, snapshot, change = null) => {
     try {
@@ -92,6 +95,23 @@ export function createUldStore(initialRecords = [], initialAlerts = []) {
   }
   return Object.freeze({
     getSnapshot,
+    getOperationsByUldId: (uldId) => operations.get(uldId) ?? null,
+    replaceOperations(raw) {
+      if (destroyed) return false;
+      const projection = normalizeOperationsProjection(raw);
+      const record = records.get(projection.uldId);
+      if (!record || projection.uldRevision < record.revision) return false;
+      if (
+        JSON.stringify(operations.get(projection.uldId)) ===
+        JSON.stringify(projection)
+      )
+        return false;
+      operations.set(projection.uldId, projection);
+      publish(
+        Object.freeze({ type: 'operations-updated', uldId: projection.uldId }),
+      );
+      return true;
+    },
     setConnectionStatus(status) {
       if (destroyed) return false;
       if (!ULD_CONNECTION_STATUSES.includes(status))
@@ -122,6 +142,7 @@ export function createUldStore(initialRecords = [], initialAlerts = []) {
       }
       records.clear();
       alerts.clear();
+      operations.clear();
       for (const [id, record] of next) records.set(id, record);
       for (const [id, alert] of nextAlerts) alerts.set(id, alert);
       if (!records.has(selectedUldId)) selectedUldId = null;
@@ -183,6 +204,7 @@ export function createUldStore(initialRecords = [], initialAlerts = []) {
       return () => listeners.delete(listener);
     },
     destroy() {
+      operations.clear();
       connectionStatus = 'DISCONNECTED';
       destroyed = true;
       listeners.clear();

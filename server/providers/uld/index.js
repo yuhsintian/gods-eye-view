@@ -4,6 +4,7 @@ import { admitSameSiteKeyless } from '../common/same-site.js';
 import { admitSameSiteRequest } from '../../../src/localRequestGate.mjs';
 import { readRequestBody } from '../common/request.js';
 import { createSemanticRoutes } from './semantic/http.js';
+import { createOperationsRoutes } from './operations/http.js';
 
 /** Bind HTTP + WS to an existing server. Demo writes are DEVELOPMENT ONLY. */
 export function installUldProvider(
@@ -31,6 +32,7 @@ export function installUldProvider(
     const path = new URL(req.url, 'http://localhost').pathname;
     if (!path.startsWith('/api/uld/')) return next();
     if (admitSameSiteKeyless(req, res)) return;
+    if (operationsRoutes(req, res, path)) return;
     if (semanticRoutes(req, res, path)) return;
     if (path === '/api/uld/observations/recent') {
       if (!demoEnabled) return json(res, 404, { error: 'Unknown ULD route' });
@@ -91,6 +93,11 @@ export function installUldProvider(
     demoEnabled,
     json,
     receiveJson,
+  });
+  const operationsRoutes = createOperationsRoutes({
+    backend,
+    demoEnabled,
+    json,
   });
   async function receiveJson(req, res, handle, demo = false) {
     const controller = new AbortController();
