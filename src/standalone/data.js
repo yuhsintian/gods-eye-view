@@ -1,7 +1,9 @@
 import { createApplicationData } from '../app/data.js';
 import { getStandaloneCatalog } from './catalog.js';
 import { mountUldDetailPanel } from '../ui/uldDetailPanel.js';
-import { createUldDemoScenario } from '../uld/demoScenario.js';
+import { createUldRealtimeClient } from '../uld/realtimeClient.js';
+import { createUldDemoApi } from '../uld/demoApi.js';
+import { mountUldConnectionStatus } from '../ui/uldConnectionStatus.js';
 import { mountUldAlertPanel } from '../ui/uldAlertPanel.js';
 import { mountUldDemoControls } from '../ui/uldDemoControls.js';
 export async function createStandaloneData(options) {
@@ -26,6 +28,8 @@ export async function createStandaloneData(options) {
           syncShare: false,
         }),
       focusDemo: async () => {
+        if (catalog.uldStore.getSnapshot().connectionStatus !== 'CONNECTED')
+          throw new Error('ULD snapshot has not connected');
         const enabled = await data.dataManager.setEnabled('uld', true, {
           signal,
         });
@@ -39,10 +43,18 @@ export async function createStandaloneData(options) {
       panel.destroy();
     });
     const store = catalog.uldStore;
-    const scenario = createUldDemoScenario({
-      store,
-      initialRecords: store.getSnapshot().records,
+    const realtime = createUldRealtimeClient({ store });
+    const stopRealtime = () => realtime.stop();
+    signal.addEventListener('abort', stopRealtime, { once: true });
+    defer(() => {
+      signal.removeEventListener('abort', stopRealtime);
+      realtime.stop();
     });
+    const connection = mountUldConnectionStatus({
+      container: document.querySelector('[data-uld-connection]'),
+      store,
+    });
+    defer(() => connection.destroy());
     const alertContainer = document.getElementById('uld-alert-panel');
     const alerts = mountUldAlertPanel({
       container: alertContainer,
@@ -58,15 +70,19 @@ export async function createStandaloneData(options) {
       },
     });
     defer(() => alerts.destroy());
+    const demo = createUldDemoApi();
     const demoControls = mountUldDemoControls({
       container: alertContainer,
-      onSimulate: () => scenario.simulateUnauthorizedMovement(),
-      onReset: () => scenario.reset(),
+      onSimulate: demo.simulate,
+      onReset: demo.reset,
     });
+    if (!import.meta.env.DEV)
+      alertContainer.querySelector('.uld-demo-controls').hidden = true;
     defer(() => demoControls.destroy());
     const enabled = await data.dataManager.setEnabled('uld', true, { signal });
     signal.throwIfAborted();
     if (!enabled) throw new Error('ULD layer could not be enabled');
+    realtime.start();
   }
   return data;
 }

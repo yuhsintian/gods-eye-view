@@ -3050,6 +3050,11 @@
   "Collapse ULD alerts": "Contraer alertas de ULD",
   "Simulate Unauthorized Movement": "Simular movimiento no autorizado",
   "Reset Demo": "Restablecer demostración",
-  "Local demo scenario only, not a production rule engine.": "Solo un escenario de demostración local, no un motor de reglas de producción.",
-  "No active ULD alerts": "No hay alertas de ULD activas"
+  "No active ULD alerts": "No hay alertas de ULD activas",
+  "Connecting": "Conectando",
+  "Connected": "Conectado",
+  "Disconnected": "Desconectado",
+  "Reconnecting": "Reconectando",
+  "ULD connection": "Conexión ULD",
+  "Development demo only, not a production rule engine.": "Solo demostración de desarrollo, no un motor de reglas de producción."
 }

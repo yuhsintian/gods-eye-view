@@ -15,6 +15,10 @@ const STATUS_MESSAGES = Object.freeze({
   ACTIVE: msg('Active alert'),
   ACKNOWLEDGED: msg('Acknowledged alert'),
   RESOLVED: msg('Resolved alert'),
+  CONNECTING: msg('Connecting'),
+  CONNECTED: msg('Connected'),
+  DISCONNECTED: msg('Disconnected'),
+  RECONNECTING: msg('Reconnecting'),
 });
 const ALERT_TYPE_MESSAGES = Object.freeze({
   UNAUTHORIZED_MOVEMENT: msg('Unauthorized movement'),
@@ -36,6 +40,7 @@ const STATUS_FIELDS = new Set([
   'positionSource',
   'level',
   'status',
+  'connectionStatus',
 ]);
 const taipeiClock = new Intl.DateTimeFormat('en-CA', {
   timeZone: 'Asia/Taipei',

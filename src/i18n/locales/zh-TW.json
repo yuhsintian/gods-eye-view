@@ -2912,6 +2912,11 @@
   "Collapse ULD alerts": "收合 ULD 告警",
   "Simulate Unauthorized Movement": "模擬異常移動",
   "Reset Demo": "重設示範",
-  "Local demo scenario only, not a production rule engine.": "僅為本機示範情境，並非正式規則引擎。",
-  "No active ULD alerts": "目前無啟用中的告警"
+  "No active ULD alerts": "目前無啟用中的告警",
+  "Connecting": "連線中",
+  "Connected": "已連線",
+  "Disconnected": "已中斷",
+  "Reconnecting": "重新連線中",
+  "ULD connection": "即時連線",
+  "Development demo only, not a production rule engine.": "僅供開發示範，並非正式規則引擎。"
 }

@@ -4,7 +4,7 @@ import { createApplicationCatalog } from '../app/constructCatalog.js';
 import { createStandaloneLayerSources } from './layerSources.js';
 import { createLayerCatalog } from '../app/catalog.js';
 import { createUldStore } from '../uld/store.js';
-import { createMockUldRecords, createUldSource } from '../layers/uld/source.js';
+import { createUldSource } from '../layers/uld/source.js';
 import { createUldLayer } from '../layers/uld/index.js';
 export { createStandaloneReferenceSources } from './layerSources.js';
 
@@ -12,6 +12,7 @@ export { createStandaloneReferenceSources } from './layerSources.js';
 export function createStandaloneCatalog({
   nepalBoundaryResolver,
   sources = {},
+  uldInitialRecords = [],
   streetLevelProviders,
   signal = new AbortController().signal,
   surface = createSurfaceServices({
@@ -30,7 +31,7 @@ export function createStandaloneCatalog({
       maxLabels: import.meta.env?.VITE_AIS_LIVE_LABEL_MAX_ROWS,
     },
   });
-  const uldStore = createUldStore(createMockUldRecords());
+  const uldStore = createUldStore(uldInitialRecords);
   signal.addEventListener('abort', () => uldStore.destroy(), { once: true });
   const uld = createUldLayer({ source: createUldSource(uldStore) });
   // Mock configuration is page-local; do not publish it in durable/share state.

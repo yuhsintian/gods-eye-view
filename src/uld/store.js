@@ -1,6 +1,13 @@
 import { normalizeUldRecord } from './records.js';
 import { normalizeUldAlert } from './alerts.js';
 
+export const ULD_CONNECTION_STATUSES = Object.freeze([
+  'CONNECTING',
+  'CONNECTED',
+  'DISCONNECTED',
+  'RECONNECTING',
+]);
+
 /** One authoritative set of domain records shared by the layer and panel. */
 export function createUldStore(initialRecords = [], initialAlerts = []) {
   const records = new Map();
@@ -21,12 +28,14 @@ export function createUldStore(initialRecords = [], initialAlerts = []) {
   }
   const listeners = new Set();
   let selectedUldId = null;
+  let connectionStatus = 'DISCONNECTED';
   let destroyed = false;
   const getSnapshot = () =>
     Object.freeze({
       records: Object.freeze([...records.values()]),
       alerts: Object.freeze([...alerts.values()]),
       selectedUldId,
+      connectionStatus,
     });
   const notify = (listener, snapshot, change = null) => {
     try {
@@ -83,6 +92,42 @@ export function createUldStore(initialRecords = [], initialAlerts = []) {
   }
   return Object.freeze({
     getSnapshot,
+    setConnectionStatus(status) {
+      if (destroyed) return false;
+      if (!ULD_CONNECTION_STATUSES.includes(status))
+        throw new TypeError('Invalid ULD connection status');
+      if (connectionStatus === status) return true;
+      connectionStatus = status;
+      publish(Object.freeze({ type: 'connection-status' }));
+      return true;
+    },
+    // Authoritative full replacement after transport sequence validation. Normal
+    // upserts below still reject stale record revisions. A fresh server session
+    // may restart its in-memory revisions, so snapshots deliberately replace.
+    replaceSnapshot({ ulds, alerts: incomingAlerts }) {
+      if (destroyed) return false;
+      const next = new Map();
+      const nextAlerts = new Map();
+      for (const raw of ulds) {
+        const record = normalizeUldRecord(raw);
+        if (next.has(record.uldId))
+          throw new TypeError('Duplicate snapshot ULD');
+        next.set(record.uldId, record);
+      }
+      for (const raw of incomingAlerts) {
+        const alert = normalizeUldAlert(raw);
+        if (nextAlerts.has(alert.alertId) || !next.has(alert.uldId))
+          throw new TypeError('Invalid snapshot alert relation');
+        nextAlerts.set(alert.alertId, alert);
+      }
+      records.clear();
+      alerts.clear();
+      for (const [id, record] of next) records.set(id, record);
+      for (const [id, alert] of nextAlerts) alerts.set(id, alert);
+      if (!records.has(selectedUldId)) selectedUldId = null;
+      publish(Object.freeze({ type: 'snapshot-replaced' }));
+      return true;
+    },
     getUldById: (uldId) => records.get(uldId) ?? null,
     getAlertById: (alertId) => alerts.get(alertId) ?? null,
     // Acknowledged alerts remain ongoing until explicitly resolved.
@@ -138,6 +183,7 @@ export function createUldStore(initialRecords = [], initialAlerts = []) {
       return () => listeners.delete(listener);
     },
     destroy() {
+      connectionStatus = 'DISCONNECTED';
       destroyed = true;
       listeners.clear();
     },

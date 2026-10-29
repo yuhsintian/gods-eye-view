@@ -1,70 +1,150 @@
-:is(#uld-detail-panel, #uld-alert-panel) [data-panel-body] {
-  padding: 12px;
+/* ULD presentation tokens: scoped to competition/demo surfaces. */
+:root {
+  --uld-font-family:
+    'Inter', 'Noto Sans CJK TC', 'Microsoft JhengHei', system-ui, sans-serif;
+  --uld-body-size: 15px;
+  --uld-value-size: 17px;
+  --uld-label-size: 14px;
+  --uld-title-size: 19px;
+  --uld-body-leading: 1.6;
+  --uld-value-leading: 1.5;
+  --uld-secondary: #bdcbdc;
 }
-
+:is(#uld-detail-panel, #uld-alert-panel) {
+  --panel-expanded-width: 350px;
+  --panel-surface-width: 350px;
+  font-size: var(--uld-body-size);
+  font-family: var(--uld-font-family);
+  line-height: var(--uld-body-leading);
+  color: #e9f0fa;
+}
+:is(#uld-detail-panel, #uld-alert-panel) [data-panel-header] {
+  gap: 10px;
+  padding: 12px 14px;
+}
+:is(#uld-detail-panel, #uld-alert-panel) > [data-panel-surface] {
+  padding: 0;
+  gap: 8px;
+  font: var(--uld-body-size)/var(--uld-body-leading) var(--uld-font-family);
+}
+:is(#uld-detail-panel, #uld-alert-panel) .panel-surface-title {
+  font-size: var(--uld-title-size);
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+}
+:is(#uld-detail-panel, #uld-alert-panel) [data-panel-body] {
+  padding: 14px;
+}
+:is(#uld-detail-panel, #uld-alert-panel) .panel-surface-control {
+  font-size: var(--uld-body-size);
+  line-height: 1.5;
+  min-height: 38px;
+  padding: 8px 12px;
+  white-space: normal;
+}
+:is(#uld-detail-panel, #uld-alert-panel) .panel-collapse-btn {
+  flex: 0 0 32px;
+  min-height: 32px;
+  padding: 2px;
+}
 .uld-detail-fields {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 4px;
-  margin: 14px 0;
-  font-size: 12px;
+  gap: 5px;
+  margin: 18px 0;
 }
-
 .uld-detail-fields dt {
-  color: var(--text-secondary);
-}
-
-.uld-detail-fields dd {
-  margin: 0 0 12px;
+  color: var(--uld-secondary);
+  font-size: var(--uld-label-size);
+  line-height: 1.5;
   overflow-wrap: anywhere;
-  font-family: var(--font-mono);
 }
-
+.uld-detail-fields dd {
+  margin: 0 0 17px;
+  font: 600 var(--uld-value-size)/var(--uld-value-leading) var(--font-mono);
+  overflow-wrap: anywhere;
+}
+.uld-status-badge,
+.uld-alert-card [data-alert-field='level'],
+[data-uld-connection] {
+  display: inline-block;
+  justify-self: start;
+  max-width: 100%;
+  padding: 4px 8px;
+  border: 1px solid currentColor;
+  border-radius: var(--btn-radius);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
 .uld-demo-legend {
   white-space: pre-line;
 }
-
-:is(#uld-detail-panel, #uld-alert-panel) [data-alert-level='NORMAL'] {
-  color: #43d9b0;
+:is(#uld-detail-panel, #uld-alert-panel) [data-alert-level='NORMAL'],
+[data-connection-status='CONNECTED'] {
+  color: #64e6bd;
 }
 :is(#uld-detail-panel, #uld-alert-panel) [data-alert-level='WARNING'] {
-  color: #ffbd4a;
+  color: #ffd078;
 }
-:is(#uld-detail-panel, #uld-alert-panel) [data-alert-level='CRITICAL'] {
-  color: #ff5364;
+:is(#uld-detail-panel, #uld-alert-panel) [data-alert-level='CRITICAL'],
+[data-connection-status='DISCONNECTED'] {
+  color: #ff8a98;
 }
-
-.uld-demo-notice {
-  font-size: 11px;
-  line-height: 1.6;
-  color: var(--text-secondary);
+.uld-demo-notice,
+.uld-alert-subtitle {
+  color: var(--uld-secondary);
+  font-size: var(--uld-label-size);
+  line-height: var(--uld-body-leading);
 }
-
 .uld-demo-controls {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
+}
+.uld-demo-controls[hidden] {
+  display: none;
 }
 .uld-alert-subtitle {
-  color: var(--text-secondary);
-  font-size: 11px;
-  margin: 0 0 10px;
+  margin: 0 0 12px;
+}
+.uld-connection-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-bottom: 14px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.uld-connection-row > span {
+  color: var(--uld-secondary);
 }
 .uld-alert-card.panel-surface-control {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 6px;
+  gap: 9px;
   width: 100%;
-  margin: 10px 0;
-  padding: 12px;
+  margin: 14px 0;
+  padding: 14px;
   text-align: left;
   white-space: normal;
   overflow-wrap: anywhere;
-  border-inline-start: 3px solid currentColor;
+  border-inline-start: 4px solid currentColor;
+}
+.uld-alert-card [data-alert-field='level'] {
+  align-self: flex-start;
+  font-size: 16px;
+  line-height: 1.5;
+  font-weight: 700;
 }
 .uld-alert-card [data-alert-field='title'] {
-  font-weight: 600;
+  font-size: 17px;
+  line-height: 1.5;
+  font-weight: 700;
+}
+.uld-alert-card [data-alert-field='uldId'] {
+  font: 600 17px/1.5 var(--font-mono);
 }
 .uld-alert-card
   :is(
@@ -73,6 +153,48 @@
     [data-alert-field='occurredAt'],
     [data-alert-field='status']
   ) {
-  font-size: 11px;
-  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--uld-secondary);
+}
+#data-toggles [data-layer-id='uld'] :is(.data-name, .data-toggle-btn) {
+  font-size: 15px;
+  line-height: 1.5;
+}
+#data-toggles [data-layer-id='uld'] :is(.data-toggle-meta, .data-count) {
+  font-size: 14px;
+  line-height: 1.5;
+}
+#data-toggles [data-layer-id='uld'] .data-toggle-btn {
+  min-height: 34px;
+}
+#title-bar h1 {
+  font-size: clamp(28px, 2.4vw, 34px);
+  line-height: 1.3;
+}
+#title-bar .subtitle {
+  font-size: 14px;
+  line-height: 1.6;
+  letter-spacing: 0.05em;
+}
+@media (max-width: 1366px) {
+  :is(#uld-detail-panel, #uld-alert-panel) {
+    --panel-expanded-width: 340px;
+    --panel-surface-width: 340px;
+  }
+}
+/* Give the expanded ULD detail the existing right rail's readable corridor.
+   Collapsing it restores every legacy launcher; their state is untouched. */
+@media (min-width: 721px) {
+  :root[data-ui-theme='cyber']
+    #right-context-rail:has(> #uld-detail-panel:not(.collapsed))
+    > [data-panel-id].collapsed {
+    display: none;
+  }
+}
+@media (max-width: 720px) {
+  :is(#uld-detail-panel, #uld-alert-panel) {
+    --panel-expanded-width: min(100%, 350px);
+    --panel-surface-width: min(100%, 350px);
+  }
 }

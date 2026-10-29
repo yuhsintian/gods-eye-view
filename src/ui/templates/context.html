@@ -7,6 +7,10 @@
           <button type="button" class="panel-collapse-btn panel-surface-control" data-collapse-target="uld-detail-panel" aria-expanded="true" aria-label="Collapse ULD detail" data-i18n-aria-label>−</button>
         </header>
         <div data-panel-body data-rail-scroller>
+          <div class="uld-connection-row" role="status" aria-live="polite">
+            <span data-i18n>ULD connection</span>
+            <strong data-uld-connection data-i18n-runtime></strong>
+          </div>
           <button type="button" class="panel-surface-control" data-uld-focus data-i18n>Show TPE demo</button>
           <p class="uld-demo-notice"><span data-i18n>MOCK</span> · <span data-i18n>CONFIGURED_DEMO</span><br><span data-i18n>Configured locations, not live GPS.</span></p>
           <p class="uld-demo-notice uld-demo-legend" data-uld-legend data-i18n-runtime></p>

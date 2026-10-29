@@ -12,7 +12,10 @@ export function createUldRenderer(viewer, source) {
   dataSource.show = false;
   viewer.dataSources.add(dataSource);
   const renderedVersions = new Map();
-  const repaint = ({ records, selectedUldId }) => {
+  const repaint = ({ records, selectedUldId }, change) => {
+    // An authoritative snapshot may restart record revisions after a server
+    // restart. Repaint properties while retaining every existing Cesium owner.
+    if (change?.type === 'snapshot-replaced') renderedVersions.clear();
     const ids = new Set();
     dataSource.entities.suspendEvents();
     try {

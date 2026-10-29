@@ -90,7 +90,10 @@ test('selection and versioned updates use the same immutable record, with unsubs
 test('standalone registers ULD through the sealed production catalog without changing legacy layers', () => {
   const controller = new AbortController();
   try {
-    const catalog = createStandaloneCatalog({ signal: controller.signal });
+    const catalog = createStandaloneCatalog({
+      signal: controller.signal,
+      uldInitialRecords: createMockUldRecords(),
+    });
     const lifecycle = new LayerLifecycle({});
     for (const layer of catalog.layers) lifecycle.register(layer);
     lifecycle.finalizeRegistrations(catalog.metadata);
@@ -107,8 +110,21 @@ test('standalone registers ULD through the sealed production catalog without cha
       },
     );
     assert.equal(catalog.uldStore.getSnapshot().records.length, 3);
+    assert.equal(catalog.uldStore.selectUld('AKE12345CI'), true);
     controller.abort();
     assert.equal(catalog.uldStore.selectUld('AKE12345CI'), false);
+  } finally {
+    controller.abort();
+  }
+});
+
+test('standalone backend path starts with an empty Store rather than generating frontend data', () => {
+  const controller = new AbortController();
+  try {
+    const catalog = createStandaloneCatalog({ signal: controller.signal });
+    assert.equal(catalog.uldStore.getSnapshot().records.length, 0);
+    assert.equal(catalog.uldStore.getSnapshot().alerts.length, 0);
+    assert.ok(catalog.get('uld'));
   } finally {
     controller.abort();
   }

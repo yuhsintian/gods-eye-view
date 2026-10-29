@@ -3119,6 +3119,11 @@
   "Collapse ULD alerts": "Свернуть тревоги ULD",
   "Simulate Unauthorized Movement": "Смоделировать несанкционированное перемещение",
   "Reset Demo": "Сбросить демонстрацию",
-  "Local demo scenario only, not a production rule engine.": "Только локальный демонстрационный сценарий, не промышленный механизм правил.",
-  "No active ULD alerts": "Нет активных тревог ULD"
+  "No active ULD alerts": "Нет активных тревог ULD",
+  "Connecting": "Подключение",
+  "Connected": "Подключено",
+  "Disconnected": "Отключено",
+  "Reconnecting": "Повторное подключение",
+  "ULD connection": "Соединение ULD",
+  "Development demo only, not a production rule engine.": "Только демонстрация для разработки, не промышленный механизм правил."
 }

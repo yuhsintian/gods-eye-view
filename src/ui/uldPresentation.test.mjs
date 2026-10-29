@@ -18,6 +18,17 @@ import { createMockUldRecords } from '../layers/uld/source.js';
 
 afterEach(() => setLocale('en'));
 
+test('connection states use Taiwan UI labels without changing transport enums', () => {
+  setLocale('zh-TW');
+  for (const [value, label] of [
+    ['CONNECTING', '連線中'],
+    ['CONNECTED', '已連線'],
+    ['DISCONNECTED', '已中斷'],
+    ['RECONNECTING', '重新連線中'],
+  ])
+    assert.equal(formatUldValue('connectionStatus', value), label);
+});
+
 test('alert enums, title, message and event time use centralized Taiwan presentation', () => {
   setLocale('zh-TW');
   for (const [value, expected] of [

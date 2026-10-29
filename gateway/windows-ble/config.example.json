@@ -1,0 +1,18 @@
+{
+  "gatewayId": "WIN-GW-01",
+  "backendUrl": "http://163.18.26.138:4173",
+  "publishIntervalMs": 1000,
+  "httpTimeoutSeconds": 5,
+  "retryInitialMs": 1000,
+  "retryMaxMs": 30000,
+  "tags": [
+    {
+      "tagId": "TAG001",
+      "match": { "deviceName": "REPLACE_WITH_ACTUAL_UNIQUE_ADVERTISED_NAME_1" }
+    },
+    {
+      "tagId": "TAG002",
+      "match": { "deviceName": "REPLACE_WITH_ACTUAL_UNIQUE_ADVERTISED_NAME_2" }
+    }
+  ]
+}

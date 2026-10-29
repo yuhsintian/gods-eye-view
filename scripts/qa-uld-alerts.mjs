@@ -37,7 +37,10 @@ try {
     timeout: 60000,
   });
   await page.waitForFunction(
-    () => window.__godsEyeView?.dataManager?.isEnabled('uld'),
+    () =>
+      window.__godsEyeView?.dataManager?.isEnabled('uld') &&
+      document.querySelector('[data-uld-connection]')?.dataset
+        .connectionStatus === 'CONNECTED',
     { timeout: 60000 },
   );
   await page.evaluate(async () => {

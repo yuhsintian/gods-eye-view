@@ -2912,6 +2912,11 @@
   "Collapse ULD alerts": "折叠 ULD 告警",
   "Simulate Unauthorized Movement": "模拟异常移动",
   "Reset Demo": "重置演示",
-  "Local demo scenario only, not a production rule engine.": "仅为本地演示场景，并非正式规则引擎。",
-  "No active ULD alerts": "目前无启用中的告警"
+  "No active ULD alerts": "目前无启用中的告警",
+  "Connecting": "连接中",
+  "Connected": "已连接",
+  "Disconnected": "已断开",
+  "Reconnecting": "重新连接中",
+  "ULD connection": "实时连接",
+  "Development demo only, not a production rule engine.": "仅供开发演示，并非正式规则引擎。"
 }

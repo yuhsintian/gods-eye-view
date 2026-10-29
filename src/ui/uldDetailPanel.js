@@ -34,6 +34,12 @@ export function mountUldDetailPanel({
         const value = documentRef.createElement('dd');
         value.dataset.uldField = key;
         value.textContent = formatUldValue(key, record[key]);
+        if (
+          ['operationalStatus', 'serviceabilityStatus', 'alertLevel'].includes(
+            key,
+          )
+        )
+          value.classList.add('uld-status-badge');
         if (key === 'alertLevel') value.dataset.alertLevel = record.alertLevel;
         fields.append(term, value);
       }
