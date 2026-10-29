@@ -2,6 +2,11 @@
 
 **PENDING PHYSICAL WINDOWS TEST**
 
+M6 補充：本 Gateway 仍只建立 Observation，不推論位置。預設 `WIN-GW-01` Reader
+在 Backend 未註冊，維持 M5 last-seen-only 行為。M6 configured Reader 的資料則需經
+Backend 兩筆／五秒 Demo evidence policy 才可能確認區域；RSSI 不直接定位。
+詳見 [M6 語意邊界](../../docs/ULD-SEMANTICS.md)。
+
 Linux VM 僅完成 synthetic Advertisement／HTTP 測試，未接觸 Windows BLE adapter、
 nRF54L15 或實際 firmware。不得把這些測試視為實機掃描成功。
 
@@ -10,7 +15,8 @@ VM ULD provider → 既有 `/ws/uld` → realtimeClient → Store → Last Seen�
 
 Observation 只表示「Reader 在該時間看到 Tag」。RSSI 不代表位置、移動、作業狀態、
 可用性或告警。本工具不連線 GATT、不寫 firmware、不推論 zone、不產生移動告警。
-地圖位置仍為 `CONFIGURED_DEMO`，不是 GPS，也不因 BLE 更新位置。
+M5 預設未知 Reader 時，地圖位置保持 `CONFIGURED_DEMO`；M6 經確認後使用的
+Reader-zone 代表座標也不是 GPS。單一 BLE Observation 不直接更新座標。
 
 ## Windows PowerShell：實機前的完整操作
 

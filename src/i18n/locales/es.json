@@ -3056,5 +3056,9 @@
   "Disconnected": "Desconectado",
   "Reconnecting": "Reconectando",
   "ULD connection": "Conexión ULD",
-  "Development demo only, not a production rule engine.": "Solo demostración de desarrollo, no un motor de reglas de producción."
+  "Development demo only, not a production rule engine.": "Solo demostración de desarrollo, no un motor de reglas de producción.",
+  "Reader-zone inference": "Inferencia por zona del lector",
+  "ULD is unserviceable for dispatch.": "El ULD no está en condiciones de servicio para su despacho.",
+  "Station dwell reached 60 days.": "La permanencia en la estación ha alcanzado 60 días.",
+  "Station dwell reached 180 days.": "La permanencia en la estación ha alcanzado 180 días."
 }

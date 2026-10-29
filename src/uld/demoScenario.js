@@ -29,6 +29,7 @@ export function createUldDemoScenario({
             lastSeenAt: occurredAt,
             revision: current.revision + 1,
             position: { longitude: 121.226, latitude: 25.074, height: 55 },
+            positionSource: 'CONFIGURED_DEMO',
           },
         ],
         alerts: [

@@ -16,10 +16,16 @@ export function mountUldDetailPanel({
   const button = container.querySelector('[data-uld-focus]');
   const content = container.querySelector('[data-uld-detail]');
   const error = container.querySelector('[data-uld-error]');
+  const positionSource = container.querySelector('[data-uld-position-source]');
   container.querySelector('[data-uld-legend]').textContent = getUldLegend();
   let destroyed = false;
   const unsubscribe = store.subscribe(({ selectedUldId }, change) => {
     const record = store.getUldById(selectedUldId);
+    if (positionSource)
+      positionSource.textContent = formatUldValue(
+        'positionSource',
+        record?.positionSource ?? 'CONFIGURED_DEMO',
+      );
     content.replaceChildren();
     if (!record) {
       const empty = documentRef.createElement('p');

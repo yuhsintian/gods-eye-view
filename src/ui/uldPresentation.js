@@ -12,6 +12,7 @@ const STATUS_MESSAGES = Object.freeze({
   UNSERVICEABLE: msg('Unserviceable UNSERVICEABLE'),
   UNCONFIRMED: msg('Unconfirmed UNCONFIRMED'),
   CONFIGURED_DEMO: msg('CONFIGURED_DEMO'),
+  READER_ZONE_INFERENCE: msg('Reader-zone inference'),
   ACTIVE: msg('Active alert'),
   ACKNOWLEDGED: msg('Acknowledged alert'),
   RESOLVED: msg('Resolved alert'),

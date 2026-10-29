@@ -3,6 +3,8 @@ import { createUldStore } from '../../../src/uld/store.js';
 import { createMockUldRecords } from '../../../src/uld/mockData.js';
 import { createUldDemoScenario } from '../../../src/uld/demoScenario.js';
 import { createObservationProcessor } from './observations.js';
+import { createSemanticModel } from './semantic/index.js';
+import { createSemanticProjection } from './semantic/projection.js';
 
 /** Process-local DEVELOPMENT mock authority. No acquisition starts on import. */
 export function createUldBackend({
@@ -10,8 +12,11 @@ export function createUldBackend({
   registry,
   dedupeCapacity,
   recentCapacity,
+  initialRecords = createMockUldRecords(),
+  readers,
+  inferencePolicy,
 } = {}) {
-  const store = createUldStore(createMockUldRecords());
+  const store = createUldStore(initialRecords);
   const scenario = createUldDemoScenario({
     store,
     initialRecords: store.getSnapshot().records,
@@ -48,6 +53,17 @@ export function createUldBackend({
       for (const listener of listeners) listener(event);
     }
   });
+  const semantic = createSemanticModel({
+    getUldById: store.getUldById,
+    readers,
+    policy: inferencePolicy,
+    now,
+  });
+  const projection = createSemanticProjection({
+    store,
+    semantic,
+    initialRecords: store.getSnapshot().records,
+  });
   const observations = createObservationProcessor({
     store,
     registry,
@@ -55,6 +71,7 @@ export function createUldBackend({
     dedupeCapacity,
     recentCapacity,
     getStreamRevision: () => streamRevision,
+    projectObservation: projection.observe,
   });
   return {
     snapshot: () => ({
@@ -64,15 +81,23 @@ export function createUldBackend({
       ulds: store.getSnapshot().records,
       alerts: store.getSnapshot().alerts,
     }),
-    simulate: scenario.simulateUnauthorizedMovement,
-    reset: scenario.reset,
+    simulate() {
+      const changed = scenario.simulateUnauthorizedMovement();
+      if (changed) semantic.invalidateLocationEvidence();
+      return changed;
+    },
+    reset: projection.reset,
     observe: observations.accept,
     recentObservations: observations.recent,
+    semanticDiagnostics: semantic.diagnostics,
+    activateDispatch: semantic.activateDispatch,
+    clearDispatch: semantic.clearDispatch,
     subscribe(listener) {
       listeners.add(listener);
       return () => listeners.delete(listener);
     },
     close() {
+      semantic.reset();
       observations.close();
       unsubscribe();
       listeners.clear();

@@ -65,16 +65,18 @@ calendar overflow, timezone-less local times and leap seconds are rejected.
 Times are normalized to UTC milliseconds. Sequence must be a non-negative JS
 safe integer. Only a single object is supported, not a batch wrapper.
 
-Known tags use `tagRegistry.js` (DEMO mappings, centrally replaceable). A strictly
-newer instant updates **only** ULD `lastSeenAt` and record `revision`. The existing
-Store subscription emits one `ULD_UPSERT`, incrementing `streamRevision` once.
-No position, zone, business state, flight, destination, serviceability or alert
-changes are inferred. Position source remains `CONFIGURED_DEMO`.
+Known tags use `tagRegistry.js` (DEMO mappings, centrally replaceable). With an
+unknown Reader (including M5's `WIN-GW-01`), a strictly newer instant updates
+**only** ULD `lastSeenAt` and record `revision`. With a configured M6 Reader,
+the independent evidence/inference/rules pipeline below may confirm location
+and issue Alert commands. A single packet never changes location or movement.
 
 Response: `{accepted, observationId, tagId, mapped, uldId?, updated, duplicate,
 streamRevision}`. Unknown tags return 200 with `mapped:false` and no ULD mutation.
 Duplicate IDs return 200 with `duplicate:true`, `updated:false`, and no new event.
-Older/equal times are accepted and recorded but do not update ULD state.
+Older/equal times are accepted and recorded but never roll back Last Seen.
+Distinct equal-time evidence may contribute to first confirmation; a zone
+transition must be newer than the previous confirmed location.
 Reusing an ID with another payload still returns the first accepted identity.
 
 The process retains the last 10,000 IDs (FIFO) and 50 diagnostic sightings.
@@ -94,6 +96,40 @@ it has no BLE-specific transport or new panel.
 Existing explicit Demo reset restores fixture data including initial lastSeenAt.
 It does not clear the dedupe window; a subsequent fresh sighting updates normally.
 See [Windows PowerShell setup and physical acceptance checklist](../../../gateway/windows-ble/README.md).
+
+## M6 Semantic Context and deterministic rules
+
+Observation is not truth. `semantic/policy.js` centralizes this **Demo policy,
+not an aviation standard**: two distinct observations from the same consecutive
+Reader/Zone in a five-second observedAt window are needed to confirm location.
+RSSI is diagnostics only, never a location threshold. The initial Mock zone
+never seeds a confirmed Movement origin. Known Readers map to configured TPE
+Storage/Exit/Staging zone points; source is `READER_ZONE_INFERENCE`, not GPS.
+
+`semantic/` owns registries, evidence (32 per ULD), confirmation, canonical
+OBSERVED/LOCATED/MOVED events, and independent Dispatch Context. `rules/` returns
+pure, auditable decisions/Alert commands. Backend projection reuses existing
+ULD/Alert contracts and the unchanged WebSocket protocol. Context does not
+silently assign ULD operationalStatus, flight or serviceability.
+
+Same confirmed STORAGE-A -> EXIT-A Movement:
+
+- no valid dispatch: UNAUTHORIZED_MOVEMENT WARNING;
+- active compatible/serviceable dispatch: matched:false, ACTIVE_DISPATCH_CONTEXT;
+- UNSERVICEABLE: separate warning; dwell >=60/180-day pure functions are callable
+  with explicit station entry/current time, without a background scheduler.
+
+Development-only APIs: GET `/api/uld/events/recent` and POST
+`/api/uld/demo/context/dispatch/activate` / `clear`. Events/decisions each retain
+250 entries. Reset clears all semantic demo state, resolves active Alerts and
+continues increasing record/stream revisions. M5 recent/dedupe remain intact.
+Legacy direct movement demo is retained as an explicit fallback, not inferred
+movement; it invalidates current location evidence.
+
+Full model, reason codes and synthetic A/B procedure:
+[ULD semantics](../../../docs/ULD-SEMANTICS.md).
+`node scripts/qa-uld-semantic.mjs --url http://localhost:4173` validates both
+scenarios in a 1366x768 Browser without reload. **PENDING PHYSICAL WINDOWS TEST**.
 
 UI readability tokens and narrowly scoped brand/layer overrides live in
 `src/ui/styles/uld-eye.css`. Other original panels retain their typography.

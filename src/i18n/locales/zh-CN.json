@@ -2918,5 +2918,9 @@
   "Disconnected": "已断开",
   "Reconnecting": "重新连接中",
   "ULD connection": "实时连接",
-  "Development demo only, not a production rule engine.": "仅供开发演示，并非正式规则引擎。"
+  "Development demo only, not a production rule engine.": "仅供开发演示，并非正式规则引擎。",
+  "Reader-zone inference": "读取器区域推断",
+  "ULD is unserviceable for dispatch.": "ULD 不可使用，无法执行派遣。",
+  "Station dwell reached 60 days.": "站点滞留时间已达 60 天。",
+  "Station dwell reached 180 days.": "站点滞留时间已达 180 天，列为疑似遗失。"
 }

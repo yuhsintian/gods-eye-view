@@ -74,6 +74,7 @@ export function createObservationProcessor({
   now = () => new Date(),
   dedupeCapacity = 10000,
   recentCapacity = 50,
+  projectObservation,
 }) {
   for (const capacity of [dedupeCapacity, recentCapacity])
     if (!Number.isSafeInteger(capacity) || capacity < 1)
@@ -96,11 +97,14 @@ export function createObservationProcessor({
       const uldId = registry.getUldIdByTagId(observation.tagId);
       const record = uldId ? store.getUldById(uldId) : null;
       // Compare instants, not offset-bearing strings. Equal times are no-ops too.
-      const updated = Boolean(
+      const lastSeenAdvanced = Boolean(
         record &&
         Date.parse(observation.observedAt) > Date.parse(record.lastSeenAt),
       );
-      if (updated)
+      let updated = lastSeenAdvanced;
+      if (record && projectObservation)
+        updated = projectObservation(observation, record);
+      else if (updated)
         store.upsertUld({
           ...record,
           lastSeenAt: observation.observedAt,
@@ -127,9 +131,11 @@ export function createObservationProcessor({
           updated,
           reason: !record
             ? 'UNMAPPED_TAG'
-            : updated
+            : lastSeenAdvanced
               ? 'LAST_SEEN_UPDATED'
-              : 'NOT_NEWER',
+              : updated
+                ? 'SEMANTIC_STATE_UPDATED'
+                : 'NOT_NEWER',
         }),
       );
       if (recent.length > recentCapacity) recent.shift();

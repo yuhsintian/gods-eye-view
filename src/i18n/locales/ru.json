@@ -3125,5 +3125,9 @@
   "Disconnected": "Отключено",
   "Reconnecting": "Повторное подключение",
   "ULD connection": "Соединение ULD",
-  "Development demo only, not a production rule engine.": "Только демонстрация для разработки, не промышленный механизм правил."
+  "Development demo only, not a production rule engine.": "Только демонстрация для разработки, не промышленный механизм правил.",
+  "Reader-zone inference": "Определение зоны по считывателю",
+  "ULD is unserviceable for dispatch.": "ULD непригоден к эксплуатации для отправки.",
+  "Station dwell reached 60 days.": "Срок нахождения на станции достиг 60 дней.",
+  "Station dwell reached 180 days.": "Срок нахождения на станции достиг 180 дней."
 }

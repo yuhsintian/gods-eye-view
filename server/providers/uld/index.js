@@ -3,6 +3,7 @@ import { createUldBackend } from './state.js';
 import { admitSameSiteKeyless } from '../common/same-site.js';
 import { admitSameSiteRequest } from '../../../src/localRequestGate.mjs';
 import { readRequestBody } from '../common/request.js';
+import { createSemanticRoutes } from './semantic/http.js';
 
 /** Bind HTTP + WS to an existing server. Demo writes are DEVELOPMENT ONLY. */
 export function installUldProvider(
@@ -30,6 +31,7 @@ export function installUldProvider(
     const path = new URL(req.url, 'http://localhost').pathname;
     if (!path.startsWith('/api/uld/')) return next();
     if (admitSameSiteKeyless(req, res)) return;
+    if (semanticRoutes(req, res, path)) return;
     if (path === '/api/uld/observations/recent') {
       if (!demoEnabled) return json(res, 404, { error: 'Unknown ULD route' });
       if (req.method !== 'GET')
@@ -48,7 +50,7 @@ export function installUldProvider(
         req.resume();
         return json(res, 415, { error: 'application/json required' });
       }
-      void receiveObservation(req, res);
+      void receiveJson(req, res, backend.observe);
       return;
     }
     if (path === '/api/uld/snapshot') {
@@ -84,7 +86,13 @@ export function installUldProvider(
     }
     json(res, 404, { error: 'Unknown ULD route' });
   };
-  async function receiveObservation(req, res) {
+  const semanticRoutes = createSemanticRoutes({
+    backend,
+    demoEnabled,
+    json,
+    receiveJson,
+  });
+  async function receiveJson(req, res, handle, demo = false) {
     const controller = new AbortController();
     requests.add(controller);
     const timeout = setTimeout(
@@ -101,8 +109,8 @@ export function installUldProvider(
       const body = await readRequestBody(req, 16 * 1024, controller.signal);
       if (closed || controller.signal.aborted)
         throw new Error('Observation request closed');
-      const result = backend.observe(JSON.parse(body));
-      if (!res.destroyed) json(res, 200, result);
+      const result = handle(JSON.parse(body));
+      if (!res.destroyed) json(res, 200, result, demo);
     } catch (error) {
       if (!res.destroyed && !res.writableEnded) {
         const status = closed
@@ -117,16 +125,21 @@ export function installUldProvider(
         if (status === 500)
           console.error('ULD observation processing failed', error);
         res.setHeader('Connection', 'close');
-        json(res, status, {
-          error:
-            status === 400
-              ? error instanceof TypeError
-                ? error.message
-                : 'Invalid Observation JSON'
-              : status === 413
-                ? 'Observation exceeds 16 KiB'
-                : 'Observation request unavailable',
-        });
+        json(
+          res,
+          status,
+          {
+            error:
+              status === 400
+                ? error instanceof TypeError
+                  ? error.message
+                  : 'Invalid Observation JSON'
+                : status === 413
+                  ? 'Observation exceeds 16 KiB'
+                  : 'Observation request unavailable',
+          },
+          demo,
+        );
       }
     } finally {
       clearTimeout(timeout);

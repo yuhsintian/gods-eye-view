@@ -427,3 +427,194 @@ test('provider shutdown aborts incomplete Observation bodies without publishing 
   assert.equal(status, 503);
   assert.equal(f.backend.snapshot().streamRevision, 100);
 });
+
+const dispatchPayload = {
+  uldId: 'AKE12345CI',
+  taskId: 'TASK-CI152-01',
+  flight: 'CI152',
+  destination: 'KIX',
+};
+async function postDispatch(f, action, body) {
+  return fetch(`${f.url}/api/uld/demo/context/dispatch/${action}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+}
+
+test('HTTP scenarios A/B: evidence -> location -> canonical Movement -> context/rules -> sequenced ULD/Alert WS', async (t) => {
+  const f = await fixture(t),
+    frames = [];
+  const ws = new WebSocket(f.url.replace('http:', 'ws:') + '/ws/uld');
+  ws.on('message', (data) => frames.push(JSON.parse(String(data))));
+  t.after(() => ws.terminate());
+  await until(() => frames.length === 1);
+  let serial = 0;
+  const send = async (readerId) => {
+    const response = await f.observe(
+      observation({
+        observationId: `semantic-http-${++serial}`,
+        readerId,
+        observedAt: new Date(
+          Date.parse('2026-11-01T00:00:00Z') + serial * 1000,
+        ).toISOString(),
+      }),
+    );
+    assert.equal(response.status, 200);
+    return response.json();
+  };
+  const diagnostics = async () =>
+    (await fetch(`${f.url}/api/uld/events/recent`)).json();
+  await send('TPE-STORAGE-GW-01');
+  assert.equal((await diagnostics()).inferredLocations.length, 0);
+  await send('TPE-STORAGE-GW-01');
+  assert.equal((await diagnostics()).inferredLocations[0].zoneId, 'STORAGE-A');
+  await send('TPE-EXIT-GW-01');
+  assert.equal((await (await f.get()).json()).ulds[0].zoneId, 'STORAGE-A');
+  await send('TPE-EXIT-GW-01');
+  await until(() => frames.some((event) => event.type === 'ALERT_UPSERT'));
+  const scenarioA = await diagnostics();
+  const movementA = scenarioA.events.find(
+    (event) => event.eventType === 'MOVED',
+  );
+  assert.ok(movementA);
+  assert.equal(movementA.evidenceObservationIds.length, 4);
+  const decisionA = scenarioA.ruleDecisions.find(
+    (decision) => decision.ruleId === 'RULE_UNAUTHORIZED_MOVEMENT',
+  );
+  assert.equal(decisionA.reasonCode, 'NO_ACTIVE_DISPATCH_CONTEXT');
+  assert.equal(decisionA.relatedEventId, movementA.eventId);
+  const snapshotA = await (await f.get()).json();
+  assert.equal(snapshotA.ulds[0].zoneId, 'EXIT-A');
+  assert.equal(snapshotA.ulds[0].positionSource, 'READER_ZONE_INFERENCE');
+  assert.equal(snapshotA.ulds[0].alertLevel, 'WARNING');
+  assert.ok(
+    frames.some(
+      (event) =>
+        event.type === 'ULD_UPSERT' && event.payload.zoneId === 'EXIT-A',
+    ),
+  );
+  const beforeReset = snapshotA.streamRevision;
+  await f.post('reset');
+  await until(() => frames.some((event) => event.type === 'ALERT_RESOLVED'));
+  const afterReset = await diagnostics();
+  for (const key of [
+    'events',
+    'evidence',
+    'inferredLocations',
+    'ruleDecisions',
+    'dispatchContexts',
+  ])
+    assert.deepEqual(afterReset[key], []);
+  assert.ok((await (await f.get()).json()).streamRevision > beforeReset);
+
+  const alertCount = frames.filter(
+    (event) => event.type === 'ALERT_UPSERT',
+  ).length;
+  await send('TPE-STORAGE-GW-01');
+  await send('TPE-STORAGE-GW-01');
+  const activation = await postDispatch(f, 'activate', dispatchPayload);
+  assert.equal(activation.status, 200);
+  assert.equal(activation.headers.get('x-uld-demo'), 'DEVELOPMENT-ONLY');
+  assert.equal(
+    (await activation.json()).dispatchContext.requiredUldType,
+    'AKE',
+  );
+  await send('TPE-EXIT-GW-01');
+  await send('TPE-EXIT-GW-01');
+  const snapshotB = await (await f.get()).json();
+  await until(() => frames.at(-1).streamRevision === snapshotB.streamRevision);
+  const scenarioB = await diagnostics();
+  const movementB = scenarioB.events.find(
+    (event) => event.eventType === 'MOVED',
+  );
+  for (const key of [
+    'eventType',
+    'fromStationId',
+    'fromZoneId',
+    'toStationId',
+    'toZoneId',
+    'source',
+  ])
+    assert.equal(movementB[key], movementA[key]);
+  const decisionB = scenarioB.ruleDecisions.find(
+    (decision) => decision.ruleId === 'RULE_UNAUTHORIZED_MOVEMENT',
+  );
+  assert.equal(decisionB.matched, false);
+  assert.equal(decisionB.reasonCode, 'ACTIVE_DISPATCH_CONTEXT');
+  assert.equal(snapshotB.ulds[0].zoneId, 'EXIT-A');
+  assert.equal(snapshotB.ulds[0].alertLevel, 'NORMAL');
+  assert.ok(snapshotB.alerts.every((alert) => alert.status === 'RESOLVED'));
+  assert.equal(
+    frames.filter((event) => event.type === 'ALERT_UPSERT').length,
+    alertCount,
+  );
+  frames
+    .slice(1)
+    .forEach((event, i) => assert.equal(event.streamRevision, 101 + i));
+});
+
+test('context APIs validate separately from observations, clear contexts and stay development-only', async (t) => {
+  const f = await fixture(t);
+  const before = await (await f.get()).json();
+  assert.equal(
+    (
+      await postDispatch(f, 'activate', {
+        ...dispatchPayload,
+        uldId: 'UNKNOWN',
+      })
+    ).status,
+    400,
+  );
+  assert.equal(
+    (await postDispatch(f, 'activate', { ...dispatchPayload, taskId: '' }))
+      .status,
+    400,
+  );
+  assert.equal(
+    (await postDispatch(f, 'activate', dispatchPayload)).status,
+    200,
+  );
+  const after = await (await f.get()).json();
+  assert.deepEqual(
+    after.ulds,
+    before.ulds,
+    'context is not a silent ULD assignment mutation',
+  );
+  assert.equal(after.streamRevision, before.streamRevision);
+  const clear = await postDispatch(f, 'clear', {
+    uldId: dispatchPayload.uldId,
+  });
+  assert.equal((await clear.json()).dispatchContext.active, false);
+  const diagnostic = await (
+    await fetch(`${f.url}/api/uld/events/recent`)
+  ).json();
+  assert.deepEqual(diagnostic.dispatchContexts, []);
+  assert.equal(
+    (await fetch(`${f.url}/api/uld/demo/context/dispatch/activate`)).status,
+    405,
+  );
+  assert.equal(
+    (
+      await fetch(`${f.url}/api/uld/demo/context/dispatch/activate`, {
+        method: 'POST',
+        body: '{}',
+      })
+    ).status,
+    415,
+  );
+  const preview = await fixture(t, false);
+  assert.equal(
+    (await fetch(`${preview.url}/api/uld/events/recent`)).status,
+    404,
+  );
+  assert.equal(
+    (await postDispatch(preview, 'activate', dispatchPayload)).status,
+    403,
+  );
+  assert.equal(
+    (await postDispatch(preview, 'clear', { uldId: dispatchPayload.uldId }))
+      .status,
+    403,
+  );
+});

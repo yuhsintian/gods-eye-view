@@ -29,6 +29,25 @@ test('connection states use Taiwan UI labels without changing transport enums', 
     assert.equal(formatUldValue('connectionStatus', value), label);
 });
 
+test('semantic position provenance and rule messages remain honest and localized', () => {
+  setLocale('zh-TW');
+  assert.equal(
+    formatUldValue('positionSource', 'READER_ZONE_INFERENCE'),
+    '讀取器區域推論',
+  );
+  assert.equal(
+    getUldAlertPresentation({
+      type: 'UNSERVICEABLE',
+      level: 'WARNING',
+      status: 'ACTIVE',
+      title: 'Unserviceable alert',
+      message: 'ULD is unserviceable for dispatch.',
+      occurredAt: '2026-11-01T00:00:00Z',
+    }).message,
+    'ULD 不可使用，無法執行派遣。',
+  );
+});
+
 test('alert enums, title, message and event time use centralized Taiwan presentation', () => {
   setLocale('zh-TW');
   for (const [value, expected] of [
